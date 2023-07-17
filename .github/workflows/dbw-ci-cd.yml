@@ -1,0 +1,30 @@
+name: Deploy Databricks Notebooks
+
+on: 
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+
+      - name: Pull from Dev
+        run: |
+          databricks configure --token
+          echo ${{ secrets.DEV_DATABRICKS_HOST }} ${{ secrets.DEV_DATABRICKS_TOKEN }}
+          databricks workspace export_dir /Users/siddharthkamal007@outlook.com/test ./notebooks/siddharthkamal007@outlook.com/test
+        shell: bash
+
+      - name: Push to Prod
+        run: |
+          databricks configure --token
+          echo ${{ secrets.PROD_DATABRICKS_HOST }} ${{ secrets.PROD_DATABRICKS_TOKEN }}
+          databricks workspace import_dir ./notebooks/siddharthkamal007@outlook.com/test /Users/siddharthkamal007@outlook.com/test --overwrite
+        shell: bash
