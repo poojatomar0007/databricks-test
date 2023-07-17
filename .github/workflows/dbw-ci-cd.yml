@@ -1,6 +1,6 @@
-name: Deploy Databricks Notebooks
+name: Deploy to Databricks
 
-on: 
+on:
   push:
     branches:
       - main
@@ -8,23 +8,26 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2  # This checks out your repository code to the GitHub Actions runner
 
-      - name: Install Databricks CLI
-        run: pip install databricks-cli
+    - name: Install Databricks CLI
+      run: |
+        pip install databricks-cli  # This installs the Databricks CLI
 
-      - name: Pull from Dev
-        run: |
-          databricks configure --token
-          echo ${{ secrets.DEV_DATABRICKS_HOST }} ${{ secrets.DEV_DATABRICKS_TOKEN }}
-          databricks workspace export_dir /Users/siddharthkamal007@outlook.com/test ./notebooks/siddharthkamal007@outlook.com/test
-        shell: bash
+    - name: Configure Databricks CLI
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}  # Your Databricks workspace URL
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}  # Your Databricks personal access token
+      run: |
+        echo "[DEFAULT]" > ~/.databrickscfg
+        echo "host = $DATABRICKS_HOST" >> ~/.databrickscfg
+        echo "token = $DATABRICKS_TOKEN" >> ~/.databrickscfg  # This configures the Databricks CLI with your workspace and token
 
-      - name: Push to Prod
-        run: |
-          databricks configure --token
-          echo ${{ secrets.PROD_DATABRICKS_HOST }} ${{ secrets.PROD_DATABRICKS_TOKEN }}
-          databricks workspace import_dir ./notebooks/siddharthkamal007@outlook.com/test /Users/siddharthkamal007@outlook.com/test --overwrite
-        shell: bash
+    - name: Deploy notebooks
+      run: |
+        databricks workspace import_dir --overwrite test /Users/siddharthkamal007@outlook.com/test 
+        # The 'notebooks' is the path in your GitHub repository where your notebooks are located
+        # '/Users/myuser/test' is the path in your Databricks workspace where you want to import the notebooks to
